@@ -23,42 +23,42 @@ class DataTransformation:
         self.transformation_config = DataTransformationConfig()
 
     def get_data_transformer_object(self):
-        ''' This method creates a data transformation pipeline for numerical and categorical features.'''
+        '''This method creates a data transformation pipeline for numerical and categorical features.'''
         try:
             numerical_features = ['writing_score', 'reading_score']
-            categorical_features =  [
+            categorical_features = [
                 'gender',
                 'race_ethnicity',
                 'parental_level_of_education',
                 'lunch',
                 'test_preparation_course'
-                ]
+            ]
             num_pipeline = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='median')),
                 ('scaler', StandardScaler())
             ])
-            
+
             cat_pipeline = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy='most_frequent')),
                 ('onehotencoder', OneHotEncoder(handle_unknown='ignore')),
                 ('scaler', StandardScaler(with_mean=False))
             ])
 
-            logging.info("Categorical columns:{categorical_features}")
-            logging.info("Numerical columns:{numerical_features}")
+            logging.info(f"Categorical columns: {categorical_features}")
+            logging.info(f"Numerical columns: {numerical_features}")
 
             preprocessor = ColumnTransformer(
-                [
+                transformers=[
                     ('num', num_pipeline, numerical_features),
                     ('cat', cat_pipeline, categorical_features)
                 ]
             )
 
             return preprocessor
-        
+
         except Exception as e:
             raise CustomException(e, sys)
-        
+
     def initiate_data_transformation(self, train_path, test_path):
         logging.info("Data Transformation initiated")
         try:
@@ -71,7 +71,6 @@ class DataTransformation:
             preprocessing_obj = self.get_data_transformer_object()
 
             target_column_name = 'math_score'
-            numerical_columns = ['writing_score', 'reading_score']
 
             input_features_train_df = train_df.drop(columns=[target_column_name], axis=1)
             target_feature_train_df = train_df[target_column_name]
@@ -94,9 +93,7 @@ class DataTransformation:
                 obj=preprocessing_obj
             )
 
-
-
-            return (train_arr, test_arr, self.transformation_config.preprocessor_obj_file_path)
+            return train_arr, test_arr, self.transformation_config.preprocessor_obj_file_path
 
         except Exception as e:
             raise CustomException(e, sys)
