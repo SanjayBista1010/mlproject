@@ -10,23 +10,43 @@ It includes data preprocessing, model training, and prediction functionality.
 ```plaintext
 project/
 │
-├── artifacts/                     # Stores training data, model, preprocessor
-│   ├── train.csv
-│   ├── model.pkl
-│   ├── preprocessor.pkl
+├── artifacts/ # Stores training data, model, preprocessor, and saved models
+│ ├── train.csv
+│ ├── test.csv
+│ ├── model.pkl
+│ ├── preprocessor.pkl
+│ └── data.csv
 │
-├── src/                            # Source code
-│   ├── components/
-│   │   ├── model_trainer.py
-│   ├── utils.py
-│   ├── exception.py
-│   ├── logger.py
-│   ├── pipeline/
-│       ├── predict_pipeline.py
-│       ├── train_pipeline.py
+├── notebook/ # Jupyter notebooks for EDA and modeling
+│ ├── 1 . EDA STUDENT PERFORMANCE .ipynb
+│ ├── 2. MODEL TRAINING.ipynb
+│ └── data/
+│ └── stud.csv
 │
-├── README.md                       # Project documentation
-├── requirements.txt                # Python dependencies
+├── src/ # Source code
+│ ├── components/ # Core components like data ingestion, transformation, training
+│ │ ├── init.py
+│ │ ├── data_ingestion.py
+│ │ ├── data_transformation.py
+│ │ └── model_trainer.py
+│ ├── exception.py # Custom exceptions
+│ ├── logger.py # Logging setup
+│ ├── pipeline/ # Pipeline orchestration scripts
+│ │ ├── init.py
+│ │ ├── predict_pipeline.py
+│ │ └── train_pipeline.py
+│ └── utils.py # Utility functions
+│
+├── templates/ # HTML templates for Flask app (if any)
+│ ├── home.html
+│ └── index.html
+│
+├── app.py # Flask app for local development/testing
+├── application.py # WSGI application entry for AWS Elastic Beanstalk
+├── print_project_tree.py # Utility to print project structure
+├── requirements.txt # Python dependencies
+├── setup.py # Package setup (optional)
+└── README.md # This documentation
 ```
 
 ## 📊 Dataset
@@ -46,44 +66,80 @@ female,group B,master's degree,standard,none,90,95,93
 
 ```mermaid
 graph TD
+    subgraph Pipeline
+        TP["train_pipeline.py\n(Training pipeline entry)"]
+        PP["predict_pipeline.py\n(Prediction pipeline entry)"]
+    end
 
-A[train_pipeline.py] --> B[src/components/model_trainer.py]
-A --> C[src/utils.py]
-A --> D[src/logger.py]
-A --> E[src/exception.py]
-A --> F[artifacts/train.csv]
+    subgraph Source_Code
+        MT["model_trainer.py\n(Model training and selection)"]
+        U["utils.py\n(Utility functions: load, save, preprocess)"]
+        L["logger.py\n(Logging configuration)"]
+        E["exception.py\n(Custom exception handling)"]
+    end
 
-B -->|Uses| G[ML Models & Training Logic]
-C -->|Provides| H[load_data / save_object / preprocess_data]
-D -->|Handles| I[Logging Configuration]
-E -->|Handles| J[Custom Exception Handling]
+    subgraph Artifacts
+        D["train.csv\n(Training dataset)"]
+        M["model.pkl\n(Saved trained model)"]
+        P["preprocessor.pkl\n(Saved preprocessing object)"]
+    end
 
-subgraph Artifacts
-    F
-end
+    TP --> MT
+    TP --> U
+    TP --> L
+    TP --> E
+    TP --> D
+
+    PP --> U
+    PP --> L
+    PP --> E
+    PP --> M
+    PP --> P
+
+    MT --> ML["ML Models & Training Logic"]
+    U --> UTIL["Utility Functions"]
+    L --> LOG["Logging Setup"]
+    E --> EXC["Exception Handling"]
+
 ```
 
 # ⚙️ Installation
 
-    Clone the repository
+Clone the repository
 
-git clone https://github.com/yourusername/student-performance-pipeline.git
+    git clone https://github.com/yourusername/student-performance-pipeline.git
 
-cd student-performance-pipeline
+    cd student-performance-pipeline
 
-    Create a virtual environment
 
-python -m venv venv
+Create a virtual environment
 
-source venv/bin/activate  # On Mac/Linux
+    python -m venv venv
+    
+    source venv/bin/activate  # On Mac/Linux
+    
+    venv\Scripts\activate     # On Windows
 
-venv\Scripts\activate     # On Windows
+Install dependencies
 
-    Install dependencies
+    pip install -r requirements.txt
 
-pip install -r requirements.txt
+## 🚀 Running the Flask Application
 
-##🚀 Running the Training Pipeline
+1. **Start the server**
+
+```bash
+    python app.py
+```
+
+2. **Open your browser and visit**
+```bash
+    Home / Index page: http://127.0.0.1:5000
+
+    Prediction endpoint: http://127.0.0.1:5000/predictdata
+```
+
+# 🚀 Running the Training Pipeline
 
 To train the model with the dataset in artifacts/train.csv:
 
@@ -105,42 +161,43 @@ from src.pipeline.predict_pipeline import CustomData, PredictPipeline
 
 # Prepare custom input data
 
-data = CustomData(
-    gender="female",
+    data = CustomData(
     
-    race_ethnicity="group B",
-    
-    parental_level_of_education="bachelor's degree",
-    
-    lunch="standard",
-    
-    test_preparation_course="none",
-    
-    reading_score=72,
-    
-    writing_score=74
-    
-)
+        gender="female",
+        
+        race_ethnicity="group B",
+        
+        parental_level_of_education="bachelor's degree",
+        
+        lunch="standard",
+        
+        test_preparation_course="none",
+        
+        reading_score=72,
+        
+        writing_score=74
+        
+    )
 
 # Convert to DataFrame
-df = data.get_data_as_data_frame()
+    df = data.get_data_as_data_frame()
 
 # Load model and make prediction
 
-predict_pipeline = PredictPipeline()
-
-result = predict_pipeline.predict(df)
-
-print(f"Predicted Math Score: {result}")
+    predict_pipeline = PredictPipeline()
+    
+    result = predict_pipeline.predict(df)
+    
+    print(f"Predicted Math Score: {result}")
 
 # 📜 Logging
 
 Logging is enabled in the train_pipeline and other scripts using:
 
-from src.logger import logging
+    from src.logger import logging
 
 Logs provide step-by-step execution tracking for easier debugging.
-# 📌 Notes
+
 
     Ensure your CSV file matches the column structure expected by the preprocessing function.
 
