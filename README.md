@@ -199,9 +199,9 @@ Logging is enabled in the train_pipeline and other scripts using:
 Logs provide step-by-step execution tracking for easier debugging.
 
 
-    Ensure your CSV file matches the column structure expected by the preprocessing function.
+Ensure your CSV file matches the column structure expected by the preprocessing function.
 
-    The CustomData class must match your dataset’s feature names exactly.
+The CustomData class must match your dataset’s feature names exactly.
 
-    artifacts/ will be automatically updated when retraining.
+artifacts/ will be automatically updated when retraining.
 
